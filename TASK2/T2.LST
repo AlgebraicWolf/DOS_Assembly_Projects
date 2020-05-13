@@ -1,0 +1,67 @@
+Turbo Assembler	 Version 4.1	    02/12/20 01:13:02	    Page 1
+t2.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .data
+      3	0000  49 20 61 6D 20 61	20+  Msg:	     db	'I am a	message	printed	using BIOS interrupt', 0
+      4	      6D 65 73 73 61 67	65+
+      5	      20 70 72 69 6E 74	65+
+      6	      64 20 75 73 69 6E	67+
+      7	      20 42 49 4F 53 20	69+
+      8	      6E 74 65 72 72 75	70+
+      9	      74 00
+     10
+     11	002C			     .code
+     12				     org 100h
+     13
+     14	0100  B9 0001		     Start:	     mov cx, 1
+     15	0103  BB 0000r				     mov bx, offset Msg
+     16
+     17	0106  8A 07		     Print:	     mov al, [bx]
+     18	0108  B4 0E				     mov ah, 0eh
+     19	010A  CD 10				     int 10h
+     20	010C  43				     inc bx
+     21	010D  80 3F 00				     cmp byte ptr [bx],	0
+     22	0110  74 02				     je	EndPrn
+     23	0112  EB F2				     jmp Print
+     24
+     25	0114  C3		     EndPrn:	     ret
+     26
+     27				     end	     Start
+Turbo Assembler	 Version 4.1	    02/12/20 01:13:02	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/12/20"
+??FILENAME			  Text	 "t2	  "
+??TIME				  Text	 "01:13:02"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 T2
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ENDPRN				  Near	 DGROUP:0114
+MSG				  Near	 DGROUP:0000
+PRINT				  Near	 DGROUP:0106
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  002C Word	  Public  DATA
+  _TEXT				  16  0115 Word	  Public  CODE
+

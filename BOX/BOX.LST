@@ -1,0 +1,356 @@
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 1
+box.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .data
+      3
+      4	0000  4A 75 73 74 20 6C	69+  Msg:	     db	"Just like DVD!", 0
+      5	      6B 65 20 44 56 44	21+
+      6	      00
+      7	      =000E		     Len	     equ 14
+      8	      =0006		     Del	     equ 6
+      9	000F			     .code
+     10				     org 100h
+     11
+     12	0100  B4 01		     Start:	     mov ah, 01h
+     13	0102  B1 20				     mov cl, 20h
+     14	0104  B5 20				     mov ch, 20h
+     15	0106  CD 10				     int 10h
+     16	0108  B8 B800				     mov ax, 0b800h
+     17	010B  8E C0				     mov es, ax
+     18	010D  E8 01EC				     call ClearScreen
+     19	0110  E8 0199				     call DrawBox
+     20	0113  B5 05				     mov ch, 5d
+     21	0115  B1 03				     mov cl, 3d
+     22	0117  B4 01				     mov ah, 1d
+     23	0119  B0 01				     mov al, 1d
+     24	011B  50				     push ax
+     25	011C  BA 0000				     mov dx, 0
+     26	011F  E8 0002				     call Animation
+     27	0122  CD 20				     int 20h
+     28
+     29	0124  50		     Animation:	     push ax
+     30	0125  E8 0055		     AnimCycle:	     call DrawRoutine
+     31	0128  58				     pop ax
+     32	0129  02 EC				     add ch, ah
+     33	012B  02 C8				     add cl, al
+     34	012D  E8 0004				     call CollisionCheck
+     35	0130  50				     push ax
+     36	0131  EB F2				     jmp AnimCycle
+     37	0133  C3				     ret
+     38
+     39	0134  80 FD 15		     CollisionCheck: cmp ch, 21
+     40	0137  72 0A				     jb	SkipBottom
+     41	0139  80 C6 10				     add dh, 10000b
+     42	013C  B5 15				     mov ch, 21
+     43	013E  B4 FF				     mov ah, -1
+     44	0140  EB 0D 90				     jmp SkipTop
+     45	0143  80 FD 01		     SkipBottom:     cmp ch, 1
+     46	0146  77 07				     ja	SkipTop
+     47	0148  80 C6 10				     add dh, 10000b
+     48	014B  B5 01				     mov ch, 1
+     49	014D  B4 01				     mov ah, 1
+     50	014F  80 F9 01		     SkipTop:	     cmp cl, 1
+     51	0152  77 0A				     ja	SkipLeft
+     52	0154  80 C6 10				     add dh, 10000b
+     53	0157  B1 01				     mov cl, 1
+     54	0159  B0 01				     mov al, 1
+     55	015B  EB 19 90				     jmp SkipRight
+     56	015E  8A D1		     SkipLeft:	     mov dl, cl
+     57	0160  80 C2 0E				     add dl, Len
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 2
+box.asm
+
+
+
+     58	0163  FE C2				     inc dl
+     59	0165  80 FA 4E				     cmp dl, 78
+     60	0168  72 0C				     jb	SkipRight
+     61	016A  80 C6 10				     add dh, 10000b
+     62	016D  B0 FF				     mov al, -1
+     63	016F  8A CA				     mov cl, dl
+     64	0171  FE C9				     dec cl
+     65	0173  80 E9 0E				     sub cl, Len
+     66	0176  80 E6 70		     SkipRight:	     and dh, 01110000b
+     67	0179  80 CE 0F				     or	dh, 00001111b
+     68	017C  C3				     ret
+     69
+     70	017D  52		     DrawRoutine:    push dx
+     71	017E  51				     push cx
+     72	017F  51				     push cx
+     73	0180  51				     push cx
+     74	0181  52				     push dx
+     75	0182  E8 00B8				     call WriteText
+     76	0185  5A				     pop dx
+     77	0186  59				     pop cx
+     78	0187  E8 000A				     call Colorize
+     79	018A  E8 003E				     call Delay
+     80	018D  59				     pop cx
+     81	018E  E8 0050				     call ClearText
+     82	0191  59				     pop cx
+     83	0192  5A				     pop dx
+     84	0193  C3				     ret
+     85
+     86	0194  52		     Colorize:	     push dx
+     87	0195  E8 008B				     call CalcPosition
+     88	0198  5A				     pop dx
+     89	0199  43				     inc bx
+     90	019A  53				     push bx
+     91	019B  E8 0012				     call ColorizeLine
+     92	019E  5B				     pop bx
+     93	019F  81 C3 00A0			     add bx, 160d
+     94	01A3  53				     push bx
+     95	01A4  E8 0009				     call ColorizeLine
+     96	01A7  5B				     pop bx
+     97	01A8  81 C3 00A0			     add bx, 160d
+     98	01AC  E8 0001				     call ColorizeLine
+     99	01AF  C3				     ret
+    100
+    101	01B0  26: 88 37		     ColorizeLine:   mov byte ptr es:[bx], dh
+    102	01B3  83 C3 02				     add bx, 2
+    103	01B6  B2 00				     mov dl, 0
+    104	01B8  26: 88 37		     ColorizeCycle:  mov byte ptr es:[bx], dh
+    105	01BB  FE C2				     inc dl
+    106	01BD  83 C3 02				     add bx, 2
+    107	01C0  80 FA 0E				     cmp dl, Len
+    108	01C3  74 02				     je	EndColorize
+    109	01C5  EB F1				     jmp ColorizeCycle
+    110	01C7  26: 88 37		     EndColorize:    mov byte ptr es:[bx], dh
+    111	01CA  C3				     ret
+    112
+    113	01CB  B4 01		     Delay:	     mov ah, 01h
+    114	01CD  B9 0000				     mov cx, 0
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 3
+box.asm
+
+
+
+    115	01D0  BA 0000				     mov dx, 0
+    116	01D3  CD 1A				     int 1ah
+    117	01D5  B4 00				     mov ah, 00h
+    118	01D7  CD 1A		     DCycle:	     int 1ah
+    119	01D9  83 FA 06				     cmp dx, Del
+    120	01DC  73 02				     jae EndDelay
+    121	01DE  EB F7				     jmp DCycle
+    122	01E0  C3		     EndDelay:	     ret
+    123
+    124	01E1  E8 003F		     ClearText:	     call CalcPosition
+    125	01E4  53				     push bx
+    126	01E5  E8 0012				     call ClearLine
+    127	01E8  5B				     pop bx
+    128	01E9  81 C3 00A0			     add bx, 160d
+    129	01ED  53				     push bx
+    130	01EE  E8 0009				     call ClearLine
+    131	01F1  5B				     pop bx
+    132	01F2  81 C3 00A0			     add bx, 160d
+    133	01F6  E8 0001				     call ClearLine
+    134	01F9  C3				     ret
+    135
+    136	01FA  26: C6 07	00	     ClearLine:	     mov byte ptr es:[bx], 0
+    137	01FE  43				     inc bx
+    138	01FF  26: C6 07	0F			     mov byte ptr es:[bx], 00001111b
+    139	0203  43				     inc bx
+    140	0204  B8 0000				     mov ax, 0
+    141	0207  26: C6 07	00	     CLCycle:	     mov byte ptr es:[bx], 0
+    142	020B  43				     inc bx
+    143	020C  26: C6 07	0F			     mov byte ptr es:[bx], 00001111b
+    144	0210  43				     inc bx
+    145	0211  40				     inc ax
+    146	0212  3D 000E				     cmp ax, Len
+    147	0215  74 02				     je	EndCLCycle
+    148	0217  EB EE				     jmp CLCycle
+    149	0219  26: C6 07	00	     EndCLCycle:     mov byte ptr es:[bx], 0
+    150	021D  43				     inc bx
+    151	021E  26: C6 07	0F			     mov byte ptr es:[bx], 00001111b
+    152	0222  C3				     ret
+    153
+    154	0223  B8 0000		     CalcPosition:   mov ax, 0
+    155	0226  8A C5				     mov al, ch
+    156	0228  BB 0050				     mov bx, 80d
+    157	022B  52				     push dx
+    158	022C  F7 E3				     mul bx
+    159	022E  5A				     pop dx
+    160	022F  B5 00				     mov ch, 0
+    161	0231  03 C1				     add ax, cx
+    162	0233  BB 0002				     mov bx, 2
+    163	0236  52				     push dx
+    164	0237  F7 E3				     mul bx
+    165	0239  5A				     pop dx
+    166	023A  8B D8				     mov bx, ax
+    167	023C  C3				     ret
+    168
+    169	023D  E8 FFE3		     WriteText:	     call CalcPosition
+    170	0240  53				     push bx
+    171	0241  E8 0024				     call DrawTB
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 4
+box.asm
+
+
+
+    172	0244  BA 0000				     mov dx, 0
+    173	0247  5B				     pop bx
+    174	0248  81 C3 00A2			     add bx, 162d
+    175	024C  53				     push bx
+    176	024D  BB 0000r				     mov bx, offset Msg
+    177	0250  8A 17		     WritingCycle:   mov dl, [bx]
+    178	0252  8B CB				     mov cx, bx
+    179	0254  80 FA 00				     cmp dl, 0
+    180	0257  74 0D				     je	EndWC
+    181	0259  5B				     pop bx
+    182	025A  26: 88 17				     mov byte ptr es:[bx], dl
+    183	025D  83 C3 02				     add bx, 2
+    184	0260  53				     push bx
+    185	0261  8B D9				     mov bx, cx
+    186	0263  43				     inc bx
+    187	0264  EB EA				     jmp WritingCycle
+    188	0266  5B		     EndWC:	     pop bx
+    189	0267  C3				     ret
+    190
+    191	0268  26: C6 07	DA	     DrawTB:	     mov byte ptr es:[bx], 0dah
+    192	026C  53				     push bx
+    193	026D  83 C3 02				     add bx, 2
+    194	0270  E8 0028				     call DrawTBH
+    195	0273  26: C6 07	BF			     mov byte ptr es:[bx], 0bfh
+    196	0277  81 C3 00A0			     add bx, 160d
+    197	027B  26: C6 07	B3			     mov byte ptr es:[bx], 0b3h
+    198	027F  5B				     pop bx
+    199	0280  81 C3 00A0			     add bx, 160d
+    200	0284  26: C6 07	B3			     mov byte ptr es:[bx], 0b3h
+    201	0288  81 C3 00A0			     add bx, 160d
+    202	028C  26: C6 07	C0			     mov byte ptr es:[bx], 0c0h
+    203	0290  83 C3 02				     add bx, 2d
+    204	0293  E8 0005				     call DrawTBH
+    205	0296  26: C6 07	D9			     mov byte ptr es:[bx], 0d9h
+    206	029A  C3				     ret
+    207
+    208	029B  BA 0000		     DrawTBH:	     mov dx, 0
+    209	029E  26: C6 07	C4	     TBHCycle:	     mov byte ptr es:[bx], 0c4h
+    210	02A2  42				     inc dx
+    211	02A3  83 C3 02				     add bx, 2
+    212	02A6  83 FA 0E				     cmp dx, Len
+    213	02A9  72 F3				     jb	TBHCycle
+    214	02AB  C3				     ret
+    215
+    216	02AC  BB 0000		     DrawBox:	     mov bx, 0
+    217	02AF  26: C6 07	C9			     mov byte ptr es:[bx], 0c9h
+    218	02B3  83 C3 02				     add bx, 2d
+    219	02B6  E8 0020				     call DrawHorLine
+    220	02B9  26: C6 07	BB			     mov byte ptr es:[bx], 0bbh
+    221	02BD  81 C3 00A0			     add bx, 160d
+    222	02C1  E8 0026				     call DrawVerLine
+    223	02C4  BB 00A0				     mov bx, 160d
+    224	02C7  E8 0020				     call DrawVerLine
+    225	02CA  26: C6 07	C8			     mov byte ptr es:[bx], 0c8h
+    226	02CE  83 C3 02				     add bx, 2
+    227	02D1  E8 0005				     call DrawHorLine
+    228	02D4  26: C6 07	BC			     mov byte ptr es:[bx], 0bch
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 5
+box.asm
+
+
+
+    229	02D8  C3				     ret
+    230
+    231	02D9  B9 0000		     DrawHorLine:    mov cx, 0
+    232	02DC  26: C6 07	CD	     HorLineCycle:   mov byte ptr es:[bx], 0cdh
+    233	02E0  41				     inc cx
+    234	02E1  83 C3 02				     add bx, 2
+    235	02E4  83 F9 4E				     cmp cx, 78d
+    236	02E7  72 F3				     jb	HorLineCycle
+    237	02E9  C3				     ret
+    238
+    239	02EA  B9 0000		     DrawVerLine:    mov cx, 0
+    240	02ED  26: C6 07	BA	     VerLineCycle:   mov byte ptr es:[bx], 0bah
+    241	02F1  41				     inc cx
+    242	02F2  81 C3 00A0			     add bx, 2d*80d
+    243	02F6  83 F9 17				     cmp cx, 23d
+    244	02F9  72 F2				     jb	VerLineCycle
+    245	02FB  C3				     ret
+    246
+    247	02FC  BB 0000		     ClearScreen:    mov bx, 0b
+    248	02FF  26: C6 07	00	     ClearCycle:     mov byte ptr es:[bx], 0
+    249	0303  43				     inc bx
+    250	0304  26: C6 07	0F			     mov byte ptr es:[bx], 1111b
+    251	0308  43				     inc bx
+    252	0309  81 FB 0FA0			     cmp bx, 25d*80d*2
+    253	030D  77 02				     ja	EndClrCycle
+    254	030F  EB EE				     jmp ClearCycle
+    255	0311  C3		     EndClrCycle:    ret
+    256
+    257				     end Start
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 6
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/01/20"
+??FILENAME			  Text	 "box	  "
+??TIME				  Text	 "00:00:07"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 BOX
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ANIMATION			  Near	 DGROUP:0124
+ANIMCYCLE			  Near	 DGROUP:0125
+CALCPOSITION			  Near	 DGROUP:0223
+CLCYCLE				  Near	 DGROUP:0207
+CLEARCYCLE			  Near	 DGROUP:02FF
+CLEARLINE			  Near	 DGROUP:01FA
+CLEARSCREEN			  Near	 DGROUP:02FC
+CLEARTEXT			  Near	 DGROUP:01E1
+COLLISIONCHECK			  Near	 DGROUP:0134
+COLORIZE			  Near	 DGROUP:0194
+COLORIZECYCLE			  Near	 DGROUP:01B8
+COLORIZELINE			  Near	 DGROUP:01B0
+DCYCLE				  Near	 DGROUP:01D7
+DEL				  Number 0006
+DELAY				  Near	 DGROUP:01CB
+DRAWBOX				  Near	 DGROUP:02AC
+DRAWHORLINE			  Near	 DGROUP:02D9
+DRAWROUTINE			  Near	 DGROUP:017D
+DRAWTB				  Near	 DGROUP:0268
+DRAWTBH				  Near	 DGROUP:029B
+DRAWVERLINE			  Near	 DGROUP:02EA
+ENDCLCYCLE			  Near	 DGROUP:0219
+ENDCLRCYCLE			  Near	 DGROUP:0311
+ENDCOLORIZE			  Near	 DGROUP:01C7
+ENDDELAY			  Near	 DGROUP:01E0
+ENDWC				  Near	 DGROUP:0266
+HORLINECYCLE			  Near	 DGROUP:02DC
+LEN				  Number 000E
+MSG				  Near	 DGROUP:0000
+SKIPBOTTOM			  Near	 DGROUP:0143
+SKIPLEFT			  Near	 DGROUP:015E
+SKIPRIGHT			  Near	 DGROUP:0176
+SKIPTOP				  Near	 DGROUP:014F
+START				  Near	 DGROUP:0100
+TBHCYCLE			  Near	 DGROUP:029E
+VERLINECYCLE			  Near	 DGROUP:02ED
+WRITETEXT			  Near	 DGROUP:023D
+WRITINGCYCLE			  Near	 DGROUP:0250
+Turbo Assembler	 Version 4.1	    03/01/20 00:00:07	    Page 7
+Symbol Table
+
+
+
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  000F Word	  Public  DATA
+  _TEXT				  16  0312 Word	  Public  CODE
+

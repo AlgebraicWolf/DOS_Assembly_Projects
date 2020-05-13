@@ -1,0 +1,75 @@
+Turbo Assembler	 Version 4.1	    02/11/20 18:37:18	    Page 1
+t1.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .data
+      3	      =000D		     CR		     equ 13
+      4	      =000A		     LF		     equ 10
+      5	      =	CR, LF		     CRLF	     equ CR, LF
+      6
+      7	      =0009		     PRINT	     equ 09h
+      8	      =4C00		     EXIT0	     equ 4c00h
+      9
+     10	0000  53 6F 66 74 20 6B	69+  MyMsg:	     db	'Soft kitty, warm kitty', CRLF,	'Little	ball of	fur!', CRLF, 'Happy kitty,  +
+     11	      74 74 79 2C 20 77	61+  sleepy kitty', CRLF, 'Purr, purr, purr!', CRLF, '$'
+     12	      72 6D 20 6B 69 74	74+
+     13	      79 0D 0A 4C 69 74	74+
+     14	      6C 65 20 62 61 6C	6C+
+     15	      20 6F 66 20 66 75	72+
+     16	      21 0D 0A 48 61 70	70+
+     17	      79 20 6B 69 74 74	79+
+     18	      2C 20 73 6C 65 65	70+
+     19	      79 20 6B 69 74 74	79+
+     20	      0D 0A 50 75 72 72	2C+
+     21	      20 70 75 72 72 2C	20+
+     22	      70 75 72 72 21 0D	0A+
+     23	      24
+     24
+     25	005C			     .code
+     26				     org 100h
+     27	0100  B4 09		     Start:	     mov ah, PRINT
+     28	0102  BA 0000r				     mov dx, offset MyMsg
+     29	0105  CD 21				     int 21h
+     30	0107  B8 4C00				     mov ax, EXIT0
+     31	010A  CD 21				     int 21h
+     32				     end Start
+Turbo Assembler	 Version 4.1	    02/11/20 18:37:18	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/11/20"
+??FILENAME			  Text	 "t1	  "
+??TIME				  Text	 "18:37:18"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 T1
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+CR				  Number 000D
+CRLF				  Text	 CR, LF
+EXIT0				  Number 4C00
+LF				  Number 000A
+MYMSG				  Near	 DGROUP:0000
+PRINT				  Number 0009
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  005C Word	  Public  DATA
+  _TEXT				  16  010C Word	  Public  CODE
+

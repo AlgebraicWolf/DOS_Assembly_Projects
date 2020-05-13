@@ -1,0 +1,191 @@
+Turbo Assembler	 Version 4.1	    03/03/20 18:11:32	    Page 1
+boxlib.asm
+
+
+
+      1				     .186
+      2	0000			     .model tiny
+      3
+      4				     locals @@
+      5
+      6	0000			     .code
+      7
+      8				     public CastShadow
+      9				     public DrawBox
+     10				     public DrawHorLine
+     11				     public WriteText
+     12
+     13
+     14				     ;================================================
+     15				     ; Function	that casts shadow
+     16				     ; ENTER: CX - Length of shadow
+     17				     ;	      ES - Video RAM Segment
+     18				     ;	      AH - Shadow color
+     19				     ;	      DI - Shift to shadow position
+     20				     ; DESTR: CX, DI, AL
+     21				     ;================================================
+     22	0000			     CastShadow	     proc
+     23	0000			     @@Cycle:
+     24	0000  26: 8A 45	01			     mov al, byte ptr es:[di+1]
+     25	0004  24 07				     and al, 07h
+     26	0006  80 E4 F0				     and ah, 0f0h
+     27	0009  02 E0				     add ah, al
+     28	000B  26: 8A 05				     mov al, byte ptr es:[di]
+     29	000E  AB				     stosw
+     30	000F  E2 EF				     loop @@Cycle
+     31	0011  C3				     ret
+     32	0012			     CastShadow	     endp
+     33
+     34				     ;================================================
+     35				     ; Function	that draws box
+     36				     ; ENTER: CX - Width (min: 2)
+     37				     ;	      DX - Height (min:	2)
+     38				     ;	      AH - Shadow color
+     39				     ;	  AL - Text color
+     40				     ;	      DI - Box position
+     41				     ; DESTR: AX, BX, CX, DX, DI
+     42				     ;================================================
+     43	0012			     DrawBox	     proc
+     44	0012  83 E9 02				     sub cx, 2
+     45	0015  83 EA 02				     sub dx, 2
+     46	0018  50 51				     push ax cx
+     47	001A  86 E0				     xchg ah, al
+     48	001C  B0 C9				     mov al, 0c9h
+     49	001E  BB CDBB				     mov bx, 0cdbbh
+     50	0021  E8 005A				     call DrawHorLine ;top line
+     51	0024  8B CA				     mov cx, dx
+     52
+     53	0026			     @@Verticals:
+     54	0026  8B D1				     mov dx, cx
+     55	0028  59 58				     pop cx ax
+     56	002A  50 51				     push ax cx
+     57	002C  86 E0				     xchg ah, al
+Turbo Assembler	 Version 4.1	    03/03/20 18:11:32	    Page 2
+boxlib.asm
+
+
+
+     58	002E  B0 BA				     mov al, 0bah
+     59	0030  BB 00BA				     mov bx, 0bah
+     60	0033  81 C7 009C			     add di, 156d
+     61	0037  2B F9				     sub di, cx
+     62	0039  2B F9				     sub di, cx
+     63	003B  E8 0040				     call DrawHorLine
+     64	003E  59 58				     pop cx ax
+     65	0040  50 51				     push ax cx
+     66	0042  B9 0002				     mov cx, 2
+     67	0045  E8 FFB8				     call CastShadow
+     68						     ;pop cx ax
+     69						     ;push ax cx
+     70	0048  83 EF 04				     sub di, 4
+     71	004B  8B CA				     mov cx, dx
+     72	004D  E2 D7				     loop @@Verticals
+     73
+     74	004F  59 58				     pop cx ax
+     75	0051  50 51				     push ax cx
+     76	0053  86 E0				     xchg ah, al
+     77	0055  81 C7 009C			     add di, 156d
+     78	0059  2B F9				     sub di, cx
+     79	005B  2B F9				     sub di, cx
+     80	005D  B0 C8				     mov al, 0c8h
+     81	005F  BB CDBC				     mov bx, 0cdbch
+     82	0062  E8 0019				     call DrawHorLine ;bottom line
+     83	0065  59 58				     pop cx ax
+     84	0067  51				     push cx
+     85	0068  B9 0002				     mov cx, 2
+     86	006B  E8 FF92				     call CastShadow
+     87	006E  59				     pop cx
+     88	006F  81 C7 009A			     add di, 154d
+     89	0073  2B F9				     sub di, cx
+     90	0075  2B F9				     sub di, cx
+     91	0077  83 C1 03				     add cx, 3
+     92	007A  E8 FF83				     call CastShadow
+     93	007D  C3				     ret
+     94	007E			     DrawBox	     endp
+     95
+     96				     ;================================================
+     97				     ; Procedure that draws a horizontal line of desired
+     98				     ; length with custom start, finish	and intermediate
+     99				     ; symbols
+    100				     ;
+    101				     ; ENTER: CX - Number of repetitions of interm element
+    102				     ;	      ES - Shift to Video RAM
+    103				     ;	      DI - Position of line's first symbol
+    104				     ;	      AH - Line	color
+    105				     ;	      AL - First symbol
+    106				     ;	      BL - Last	symbol
+    107				     ;	      BH - Intermediate	symbol
+    108				     ; EXIT:  DI - Position of the next	after last symbol
+    109				     ; DESTR: CX, DI, AX
+    110				     ;================================================
+    111
+    112	007E			     DrawHorLine     proc
+    113	007E  AB				     stosw
+    114	007F  8A C7				     mov al, bh
+Turbo Assembler	 Version 4.1	    03/03/20 18:11:32	    Page 3
+boxlib.asm
+
+
+
+    115	0081  F3> AB				     rep stosw
+    116	0083  8A C3				     mov al, bl
+    117	0085  AB				     stosw
+    118	0086  C3				     ret
+    119	0087			     DrawHorLine     endp
+    120
+    121				     ;================================================
+    122				     ; Function	that writes text
+    123				     ; ENTER: DS:[SI] -	String
+    124				     ;	      ES:[DI] -	Pointer	to string
+    125				     ;	      CX - Length of string
+    126				     ; DESTR: DS:[SI], ES:[DI],	CX
+    127				     ;================================================
+    128
+    129	0087			     WriteText	 proc
+    130	0087			     @@Cycle:
+    131	0087  A4			     movsb
+    132	0088  47			     inc di
+    133	0089  E2 FC			     loop @@Cycle
+    134
+    135	008B  C3			     ret
+    136	008C			     WriteText	 endp
+    137
+    138				     end
+Turbo Assembler	 Version 4.1	    03/03/20 18:11:32	    Page 4
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/03/20"
+??FILENAME			  Text	 "boxlib  "
+??TIME				  Text	 "18:11:32"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@CYCLE				  Near	 DGROUP:0000
+@@CYCLE				  Near	 DGROUP:0087
+@@VERTICALS			  Near	 DGROUP:0026
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0103H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 BOXLIB
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+CASTSHADOW			  Near	 DGROUP:0000
+DRAWBOX				  Near	 DGROUP:0012
+DRAWHORLINE			  Near	 DGROUP:007E
+WRITETEXT			  Near	 DGROUP:0087
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  008C Word	  Public  CODE
+

@@ -1,0 +1,129 @@
+Turbo Assembler	 Version 4.1	    02/12/20 21:05:37	    Page 1
+task3.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .data
+      3
+      4	0000  54 68 69 73 20 6D	65+  MyMsg:	     db	"This message has been printed directly	to VRAM!", 0
+      5	      73 73 61 67 65 20	68+
+      6	      61 73 20 62 65 65	6E+
+      7	      20 70 72 69 6E 74	65+
+      8	      64 20 64 69 72 65	63+
+      9	      74 6C 79 20 74 6F	20+
+     10	      56 52 41 4D 21 00
+     11
+     12	0030			     .code
+     13				     org 100h
+     14
+     15	0100  B8 B800		     Start:	     mov ax, 0b800h
+     16	0103  8E C0				     mov es, ax
+     17	0105  B8 0000r				     mov ax, offset MyMsg
+     18	0108  BB 0000				     mov bx, 0
+     19
+     20	010B  26: C6 07	00	     ClrCycle:	     mov byte ptr es:[bx], 0
+     21	010F  43				     inc bx
+     22	0110  81 FB 0FA0			     cmp bx, 2d*80d*25d
+     23	0114  74 02				     je	EndClrCycle
+     24	0116  EB F3				     jmp ClrCycle
+     25
+     26	0118  BB 0840		     endClrCycle:    mov bx, 2d*(13d*80d+16d)
+     27	011B  B5 1F				     mov ch, 00011111b
+     28
+     29	011D  53		     PrnCycle:	     push bx
+     30	011E  8B D8				     mov bx, ax
+     31	0120  8A 0F				     mov cl, byte ptr [bx]
+     32	0122  5B				     pop bx
+     33	0123  26: 88 0F				     mov byte ptr es:[bx], cl
+     34	0126  43				     inc bx
+     35	0127  26: 88 2F				     mov byte ptr es:[bx], ch
+     36	012A  43				     inc bx
+     37	012B  40				     inc ax
+     38	012C  80 C5 10				     add ch, 00010000b
+     39	012F  80 E5 7F				     and ch, 01111111b
+     40	0132  80 F9 00				     cmp cl, 0
+     41	0135  74 02				     je	EndPrn
+     42	0137  EB E4				     jmp PrnCycle
+     43
+     44	0139			     EndPrn:
+     45
+     46	0139  BB 0841		     StartAnim:	     mov bx, 2d*(13d*80d+16d)+1d
+     47	013C  B9 0000				     mov cx, 0
+     48	013F  BA 0001				     mov dx, 1
+     49	0142  B4 01				     mov ah, 01h
+     50	0144  CD 1A				     int 1ah
+     51	0146  B4 00				     mov ah, 00h
+     52
+     53	0148  CD 1A		     Sleep:	     int 1ah
+     54	014A  83 FA 07				     cmp dx, 7d
+     55	014D  73 02				     jae EndSleep
+     56	014F  EB F7				     jmp Sleep
+     57
+Turbo Assembler	 Version 4.1	    02/12/20 21:05:37	    Page 2
+task3.asm
+
+
+
+     58	0151  26: 8A 2F		     EndSleep:	     mov ch, byte ptr es:[bx]
+     59	0154  B4 00				     mov ah, 0
+     60
+     61	0156  83 C3 02		     AnimCycle:	     add bx, 2
+     62	0159  81 FB 089F			     cmp bx, 2d*(13d*80d+16d)+1d+2d*47d
+     63	015D  72 05				     jb	SkipShift
+     64	015F  BB 0841				     mov bx, 2d*(13d*80d+16d)+1d
+     65	0162  B4 01				     mov ah, 1
+     66	0164  26: 8A 0F		     SkipShift:	     mov cl, byte ptr es:[bx]
+     67	0167  26: 88 2F				     mov byte ptr es:[bx], ch
+     68	016A  8A E9				     mov ch, cl
+     69	016C  80 FC 01				     cmp ah, 1
+     70	016F  74 C8				     je	StartAnim
+     71	0171  EB E3				     jmp AnimCycle
+     72
+     73	0173  C3		     EndAnim:	     ret
+     74
+     75
+     76				     end Start
+Turbo Assembler	 Version 4.1	    02/12/20 21:05:37	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/12/20"
+??FILENAME			  Text	 "task3	  "
+??TIME				  Text	 "21:05:37"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 TASK3
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ANIMCYCLE			  Near	 DGROUP:0156
+CLRCYCLE			  Near	 DGROUP:010B
+ENDANIM				  Near	 DGROUP:0173
+ENDCLRCYCLE			  Near	 DGROUP:0118
+ENDPRN				  Near	 DGROUP:0139
+ENDSLEEP			  Near	 DGROUP:0151
+MYMSG				  Near	 DGROUP:0000
+PRNCYCLE			  Near	 DGROUP:011D
+SKIPSHIFT			  Near	 DGROUP:0164
+SLEEP				  Near	 DGROUP:0148
+START				  Near	 DGROUP:0100
+STARTANIM			  Near	 DGROUP:0139
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0030 Word	  Public  DATA
+  _TEXT				  16  0174 Word	  Public  CODE
+
