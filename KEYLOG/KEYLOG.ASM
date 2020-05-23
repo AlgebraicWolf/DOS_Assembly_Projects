@@ -24,36 +24,43 @@ EndLabel:
 .code
 org 100h
 Start:
-        xor ax, ax
-        mov es, ax                                  ; Set ES to 0
+        mov bx, int09h_addr
+        mov si, offset old_int09h
+        mov di, offset Int09hHandler
+        call Intercept
 
-        cli                                         ; Disable INTs
-		mov bx, int09h_addr                         ; Save address of int08h handler
-		mov ax, word ptr es:[bx]
-		mov cx, word ptr es:[bx+2] 
-		mov word ptr cs:[old_int09h], ax            ; Save pointer to old handler
-		mov word ptr cs:[old_int09h + 2], cx
-		mov word ptr es:[bx], offset Int09hHandler  ; Rewrite handler
-		mov ax, cs
-		mov word ptr es:[bx+2], ax
-
-
-        mov bx, int28h_addr                         ; Save address of int08h handler
-		mov ax, word ptr es:[bx]
-		mov cx, word ptr es:[bx+2] 
-		mov word ptr cs:[old_int28h], ax            ; Save pointer to old handler
-		mov word ptr cs:[old_int28h + 2], cx
-		mov word ptr es:[bx], offset Int28hHandler  ; Rewrite handler
-		mov ax, cs
-		mov word ptr es:[bx+2], ax    
-		sti                                         ; Enable INTs
+        mov bx, int28h_addr
+        mov si, offset old_int28h
+        mov di, offset Int28hHandler
+        call Intercept
 
         mov ax, tsr_mode                            ; DOS function to enable TSR
-		mov dx, offset EndLabel                     ; Get program size
-		shr dx, 4                                   ; Turn it into segment
-		add dx, 16                                   ; Ceiling
-		int 21h                                     ; Call function
+	mov dx, offset EndLabel                     ; Get program size
+	shr dx, 4                                   ; Turn it into segment
+	add dx, 16                                  ; Ceiling
+	int 21h                                     ; Call function
 
+;==============================================================================
+; Function for interrupt interception
+; ENTER: BX - Address of an old interrupt handler
+;        SI - Variable for old interrupt handler 
+;        DI - Address of new interrupt handler
+; DESTR: AX, CX, ES 
+;==============================================================================
+Intercept       proc
+        xor ax, ax
+        mov es, ax                                  ; Set ES to 0
+        cli                                         ; Disable INTs
+	mov ax, word ptr es:[bx]
+	mov cx, word ptr es:[bx+2] 
+	mov word ptr cs:[si], ax                    ; Save pointer to old handler
+	mov word ptr cs:[si + 2], cx
+	mov word ptr es:[bx], DI                    ; Rewrite handler
+	mov ax, cs
+	mov word ptr es:[bx+2], ax
+        sti                                         ; Enable interrupts
+        ret
+Intercept       endp
 
 ;==============================================================================
 ; New Interrupt 28h handler
