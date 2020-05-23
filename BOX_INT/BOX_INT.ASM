@@ -20,16 +20,7 @@ Start:
 		xor ax,ax
 		mov es,ax
 
-		cli ; Disable INTs
-		mov bx, int08h_addr ; Save address of int08h handler
-		mov ax, word ptr es:[bx]
-		mov cx, word ptr es:[bx+2] 
-		mov word ptr cs:[old_int08h], ax ; Save pointer to old handler
-		mov word ptr cs:[old_int08h + 2], cx
-		mov word ptr es:[bx], offset Int08hHandler ; Rewrite handler
-		mov ax, cs
-		mov word ptr es:[bx+2], ax
-		sti ; Enable INTs
+		call Intercept08h
 
         mov ax, 1003h ; Disable blinking colors
 		mov bl, 0h
@@ -41,6 +32,20 @@ Start:
 		add dx, 8 ; Ceiling
 		int 21h ; Call function
 
+Intercept08h	proc
+		cli ; Disable INTs
+		mov bx, int08h_addr ; Save address of int08h handler
+		mov ax, word ptr es:[bx]
+		mov cx, word ptr es:[bx+2] 
+		mov word ptr cs:[old_int08h], ax ; Save pointer to old handler
+		mov word ptr cs:[old_int08h + 2], cx
+		mov word ptr es:[bx], offset Int08hHandler ; Rewrite handler
+		mov ax, cs
+		mov word ptr es:[bx+2], ax
+		sti ; Enable INTs
+
+		ret ; return
+Intercept08h	endp
 
 Int08hHandler	proc
 		push di bx ax cx dx es ds si bp
