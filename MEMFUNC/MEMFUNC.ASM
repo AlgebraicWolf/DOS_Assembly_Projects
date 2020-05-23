@@ -35,6 +35,7 @@ Start:
 ; ENTER: ES:[DI] - Address to start search 
 ;        CX - Amount of bytes to search
 ;        AL - Byte to search for
+;        DF - Direction in which function works
 ; EXIT:  ES:[DI] - Pointer to the symbol to the
 ;                  end of string
 ;        ZF - Whether value was found
@@ -51,6 +52,7 @@ memchr   endp
 ; ENTER: DS:[SI] - First array
 ;        ES:[DI] - Second array
 ;        CX - Array length
+;        DF - Direction in which function works
 ; EXIT: DS:[SI] - Pointer to the end of search
 ;       ES:[DI] -             -||-
 ;       ZF - Whether end was reachd
@@ -69,6 +71,7 @@ memcmp  endp
 ; ENTER: ES:[DI] - Array
 ;        AH - Value
 ;        CX - Array length
+;        DF - Direction in which function works
 ; DESTR: ES:[DI], CX
 ;================================================
 memset  proc
@@ -81,6 +84,7 @@ memset  endp
 ; ENTER: DS:[SI] - Source
 ;        ES:[DI] - Destination
 ;        CX - Array length
+;        DF - Direction in which function works
 ; DESTR: DS:[SI], ES:[DI], CX
 ;================================================
 memcpy   proc
@@ -92,6 +96,7 @@ memcpy  endp
 ; Function that calculates length of string
 ; ENTER: AL - String terminator
 ;        ES:[DI] - String
+;        DF - Direction in which function works
 ; EXIT:  CX - Length
 ; DESTR: ES:[DI]
 ;================================================ 
@@ -111,6 +116,7 @@ strlen  endp
 ; ENTER: AH - Symbol to search for
 ;        BH - String terminator
 ;        ES:[DI] - String
+;        DF - Direction in which function works
 ; EXIT: ES:[DI] - Pointer to symbol
 ; DESTR: AL
 ;================================================
@@ -131,6 +137,7 @@ strchr  endp
 ; ENTER: DS:[SI] - String to copy from
 ;        ES:[DI] - String to copy to
 ;        AH - String terminator
+;        DF - Direction in which function works
 ; DESTR: DS:[SI], ES:[DI] 
 ;================================================
 strcpy  proc
@@ -146,6 +153,7 @@ strcpy  endp
 ; ENTER: DS:[SI] - First string
 ;        ES:[DI] - Second string
 ;        AH - String terminator`
+;        DF - Direction in which function works
 ; EXIT:  AL - String differense
 ; DESTR: DS:[SI], ES:[DI] 
 ;================================================
